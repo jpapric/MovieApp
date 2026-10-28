@@ -7,9 +7,7 @@ type AuthUser = {
   token: string;
 };
 
-type LoginResult =
-  | { success: true }
-  | { success: false; message: "Username or password invalid" };
+type LoginResult = { success: true } | { success: false; message: string };
 
 type AuthContextValue = {
   user: AuthUser | null;
@@ -34,22 +32,45 @@ function isAuthUser(value: unknown): value is AuthUser {
   );
 }
 
+function removeStoredUser() {
+  try {
+    localStorage.removeItem("user");
+  } catch (error) {
+    console.error("Could not remove stored auth user.", error);
+  }
+}
+
 function readStoredUser(): AuthUser | null {
-  const savedUser = localStorage.getItem("user");
+  let savedUser: string | null;
+
+  try {
+    savedUser = localStorage.getItem("user");
+  } catch (error) {
+    console.error("Could not access stored auth user.", error);
+    return null;
+  }
+
   if (savedUser === null) {
     return null;
   }
+
+  let parsed: unknown;
+
   try {
-    const parsed: unknown = JSON.parse(savedUser);
-    if (isAuthUser(parsed)) {
-      return parsed;
-    }
-    console.error("Stored auth user has an invalid format.");
-    return null;
+    parsed = JSON.parse(savedUser);
   } catch (error) {
     console.error("Could not parse stored auth user.", error);
+    removeStoredUser();
     return null;
   }
+
+  if (!isAuthUser(parsed)) {
+    console.error("Stored auth user has an invalid format.");
+    removeStoredUser();
+    return null;
+  }
+
+  return parsed;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -68,13 +89,22 @@ export function AuthProvider({ children }: AuthProviderProps) {
       token: "mock-jwt-token-1234",
     };
 
-    localStorage.setItem("user", JSON.stringify(mockUser));
+    try {
+      localStorage.setItem("user", JSON.stringify(mockUser));
+    } catch (error) {
+      console.error("Could not save auth user.", error);
+      return {
+        success: false,
+        message: "Could not save login. Try again.",
+      };
+    }
+
     setUser(mockUser);
     return { success: true };
   };
 
   const logout = () => {
-    localStorage.removeItem("user");
+    removeStoredUser();
     setUser(null);
   };
 

@@ -1,17 +1,19 @@
 import { useState } from "react";
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../AuthProvider";
 import LoginForm from "./LoginForm";
 
 export default function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
+  const from = location.state?.from ?? "/movies";
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   if (user) {
-    return <Navigate to="/movies" replace />;
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (values: {
@@ -25,7 +27,7 @@ export default function LoginPage() {
       const result = await login(values.username, values.password);
 
       if (result.success) {
-        navigate("/movies");
+        navigate(from, { replace: true });
       } else {
         setError(result.message);
       }

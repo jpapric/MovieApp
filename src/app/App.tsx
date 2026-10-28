@@ -11,6 +11,8 @@ import Header from "../components/Header";
 import PageNotFound from "../components/PageNoutFound";
 // @ts-ignore CSS side-effect imports are handled by the bundler.
 import "../css/index.css";
+import MoviesDetails from "../features/movies/components/MovieDetails";
+import UserProfile from "../features/profile/UserProfile";
 
 function App() {
   return (
@@ -25,6 +27,8 @@ function App() {
                 <Route path="/" element={<LoginPage />} />
                 <Route element={<ProtectedRoute />}>
                   <Route path="/movies" element={<MoviesList />} />
+                  <Route path="/movies/:movieId" element={<MoviesDetails />} />
+                  <Route path="/profile" element={<UserProfile />} />
                 </Route>
                 <Route path="*" element={<PageNotFound />} />
               </Routes>

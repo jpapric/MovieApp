@@ -1,15 +1,9 @@
-import { Button, Typography } from "antd";
-import { Link, useNavigate } from "react-router-dom";
+import { Typography } from "antd";
+import { Link } from "react-router-dom";
 import { useAuth } from "../features/auth/AuthProvider";
 
 export default function Header() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    logout();
-    navigate("/", { replace: true });
-  };
+  const { user } = useAuth();
 
   return (
     <header
@@ -33,13 +27,22 @@ export default function Header() {
 
       {user && (
         <>
-          <div style={{ padding: "12px 24px" }}>
-            <Button type="link" onClick={handleLogout}>
-              <Typography.Title level={4} style={{ margin: 0, color: "#fff" }}>
-                Logout
-              </Typography.Title>
-            </Button>
-          </div>
+          <Link
+            to="/movies"
+            style={{ textDecoration: "none", padding: "12px 24px" }}
+          >
+            <Typography.Title level={4} style={{ margin: 0, color: "#fff" }}>
+              Movies
+            </Typography.Title>
+          </Link>
+          <Link
+            to="/profile"
+            style={{ textDecoration: "none", padding: "12px 24px" }}
+          >
+            <Typography.Title level={4} style={{ margin: 0, color: "#fff" }}>
+              Profile
+            </Typography.Title>
+          </Link>
         </>
       )}
     </header>
