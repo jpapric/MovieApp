@@ -7,7 +7,7 @@ export default function LoginPage() {
   const { user, login } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const from = location.state?.from ?? "/movies";
+  const from = location.state?.from ?? "/catalog";
 
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);

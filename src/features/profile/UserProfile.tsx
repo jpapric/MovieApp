@@ -23,7 +23,7 @@ export default function UserProfile() {
         }}
       >
         <h1>User profile</h1>
-        <Link to="/movies">
+        <Link to="/">
           <Button onClick={handleLogout} icon={<LogoutOutlined />}>
             Logout
           </Button>

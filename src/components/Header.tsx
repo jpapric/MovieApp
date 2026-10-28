@@ -28,11 +28,11 @@ export default function Header() {
       {user && (
         <>
           <Link
-            to="/movies"
+            to="/catalog"
             style={{ textDecoration: "none", padding: "12px 24px" }}
           >
             <Typography.Title level={4} style={{ margin: 0, color: "#fff" }}>
-              Movies
+              Catalog
             </Typography.Title>
           </Link>
           <Link

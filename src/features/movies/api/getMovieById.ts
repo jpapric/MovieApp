@@ -36,7 +36,7 @@ export async function getMovieById(
     throw new Error("Invalid movie ID");
   }
 
-  const url = new URL(`${BASE_URL}/${movieId}`);
+  const url = new URL(`${BASE_URL}/movie/${movieId}`);
   url.searchParams.set("append_to_response", "credits");
 
   const response = await fetch(url, {

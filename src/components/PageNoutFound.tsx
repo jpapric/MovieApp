@@ -13,10 +13,10 @@ export default function PageNotFound() {
     >
       <h1>Page not found</h1>
       <Link
-        to="/movies"
+        to="/catalog"
         style={{ textDecoration: "none", padding: "12px 24px" }}
       >
-        <Button style={{ margin: 0, color: "#1677ff" }}>Back to movies</Button>
+        <Button style={{ margin: 0, color: "#1677ff" }}>Back to catalog</Button>
       </Link>
     </div>
   );

@@ -1,23 +1,17 @@
 import { useState, useEffect } from "react";
 import { getPopularMovies } from "../api/getMovies";
 import type { Movies } from "../api/getMovies";
-import {
-  Empty,
-  List,
-  Card,
-  Typography,
-  Image,
-  Tag,
-  Space,
-  Row,
-  Col,
-} from "antd";
-import { Link } from "react-router-dom";
-const { Title, Text, Paragraph } = Typography;
+import MoviesListView from "./MoviesListView";
+
 export default function MoviesList() {
   const [movies, setMovies] = useState<Movies[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+
+  const filteredMovies = movies.filter((movie) =>
+    movie.title.toLowerCase().includes(query.trim().toLowerCase()),
+  );
 
   useEffect(() => {
     const controller = new AbortController();
@@ -44,82 +38,13 @@ export default function MoviesList() {
     return () => controller.abort();
   }, []);
 
-  if (loading) {
-    return <p>Loading movies...</p>;
-  }
-  if (error) {
-    return <p role="alert">Error:{error}</p>;
-  }
-  if (movies.length === 0) {
-    <Empty description="No movies found" />;
-  }
-
   return (
-    <>
-      <main>
-        <Title level={1} style={{ padding: "15px" }}>
-          Popular movies
-        </Title>
-
-        {movies.length === 0 ? (
-          <Empty description="No movies available" />
-        ) : (
-          <List
-            grid={{ xs: 2, sm: 2, md: 3, lg: 4, xl: 5 }}
-            dataSource={movies}
-            renderItem={(movie) => (
-              <List.Item>
-                <Link to={`/movies/${movie.id}`}>
-                  <Card hoverable>
-                    <Row gutter={16} wrap={false} align="top">
-                      <Col flex="110px" style={{ paddingRight: "15px" }}>
-                        {movie.poster_path ? (
-                          <Image
-                            preview={false}
-                            src={`https://image.tmdb.org/t/p/w500${movie.poster_path}`}
-                            alt={`Movie poster ${movie.title}`}
-                            width={110}
-                            height={165}
-                            style={{ objectFit: "cover", borderRadius: 8 }}
-                          />
-                        ) : (
-                          <Empty
-                            image={Empty.PRESENTED_IMAGE_SIMPLE}
-                            description="No poster"
-                          />
-                        )}
-                      </Col>
-
-                      <Col
-                        flex="auto"
-                        style={{ minWidth: 0, paddingLeft: "15px" }}
-                      >
-                        <Space direction="vertical" size="small">
-                          <Title level={5} style={{ margin: 0 }}>
-                            {movie.title}
-                          </Title>
-
-                          <Text type="secondary">
-                            {movie.release_date?.slice(0, 4) || "Year unknown"}
-                          </Text>
-
-                          <Tag color="gold">
-                            ★ {movie.vote_average.toFixed(1)} / 10
-                          </Tag>
-
-                          <Paragraph type="secondary" ellipsis={{ rows: 3 }}>
-                            {movie.overview || "Overview unavailable."}
-                          </Paragraph>
-                        </Space>
-                      </Col>
-                    </Row>
-                  </Card>
-                </Link>
-              </List.Item>
-            )}
-          />
-        )}
-      </main>
-    </>
+    <MoviesListView
+      loading={loading}
+      error={error}
+      movies={filteredMovies}
+      query={query}
+      onQueryChange={setQuery}
+    />
   );
 }
