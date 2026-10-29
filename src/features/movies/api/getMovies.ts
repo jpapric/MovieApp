@@ -9,13 +9,11 @@ export type Movies = {
   vote_average: number;
 };
 
-type PopularMoviesResponse = {
+type MoviesResponse = {
   results: Movies[];
 };
 
-export async function getPopularMovies(
-  signal?: AbortSignal,
-): Promise<Movies[]> {
+export async function getMovies(signal?: AbortSignal): Promise<Movies[]> {
   const token = (
     import.meta as ImportMeta & { env: { VITE_ACCESS_TOKEN?: string } }
   ).env.VITE_ACCESS_TOKEN;
@@ -38,6 +36,6 @@ export async function getPopularMovies(
     throw new Error(`Movie fetch failed (${response.status}).`);
   }
 
-  const data: PopularMoviesResponse = await response.json();
+  const data: MoviesResponse = await response.json();
   return data.results;
 }

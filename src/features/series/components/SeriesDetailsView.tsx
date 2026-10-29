@@ -1,4 +1,3 @@
-import type { TvDetails } from "../api/getSeriesById";
 import {
   Empty,
   Button,
@@ -11,9 +10,11 @@ import {
   Space,
   Tag,
   Typography,
+  Spin,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
+import type { TvDetails } from "../api/getSeriesById";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -28,8 +29,11 @@ export default function SeriesDetailsView({
   error,
   tvDetails,
 }: SeriesDetailsViewProp) {
+  const location = useLocation();
+  const returnTo = location.state?.from ?? "/catalog";
+
   if (loading) {
-    return <p>Loading series details...</p>;
+    <Spin spinning={loading} tip="Loading series..." />;
   }
 
   if (error) {
@@ -43,7 +47,7 @@ export default function SeriesDetailsView({
   return (
     <>
       <main style={{ maxWidth: 1000, margin: "32px auto", padding: "0 16px" }}>
-        <Link to="/catalog">
+        <Link to={returnTo}>
           <Button icon={<ArrowLeftOutlined />}>Back to catalog</Button>
         </Link>
 

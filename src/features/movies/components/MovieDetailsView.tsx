@@ -10,10 +10,12 @@ import {
   Space,
   Tag,
   Typography,
+  Spin,
 } from "antd";
 import { ArrowLeftOutlined } from "@ant-design/icons";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import type { Movie } from "../api/getMovieById";
+
 const { Title, Text, Paragraph } = Typography;
 
 type MovieDetailsViewProps = {
@@ -27,8 +29,11 @@ export default function MovieDetailsView({
   error,
   movie,
 }: MovieDetailsViewProps) {
+  const location = useLocation();
+  const returnTo = location.state?.from ?? "/catalog";
+
   if (loading) {
-    return <p>Loading movie details...</p>;
+    <Spin spinning={loading} tip="Loading movies..." />;
   }
 
   if (error) {
@@ -42,7 +47,7 @@ export default function MovieDetailsView({
   return (
     <>
       <main style={{ maxWidth: 1000, margin: "32px auto", padding: "0 16px" }}>
-        <Link to="/catalog">
+        <Link to={returnTo}>
           <Button icon={<ArrowLeftOutlined />}>Back to catalog</Button>
         </Link>
 

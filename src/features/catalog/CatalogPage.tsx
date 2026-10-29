@@ -1,10 +1,28 @@
 import { Tabs, Typography } from "antd";
 import MoviesList from "../movies/components/MoviesList";
 import SeriesList from "../series/components/SeriesList";
+import { useSearchParams } from "react-router";
 
 const { Title, Text } = Typography;
 
 export default function CatalogPage() {
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const activeTab = searchParams.get("tab") ?? "movies";
+  const movieQuery = searchParams.get("movieQuery") ?? "";
+  const seriesQuery = searchParams.get("seriesQuery") ?? "";
+
+  function updateCatalogState(key: string, value: string) {
+    const next = new URLSearchParams(searchParams);
+
+    if (value) {
+      next.set(key, value);
+    } else {
+      next.delete(key);
+    }
+    setSearchParams(next, { replace: true });
+  }
+
   return (
     <div
       style={{
@@ -30,11 +48,33 @@ export default function CatalogPage() {
       </div>
 
       <Tabs
-        size="large"
-        centered
+        activeKey={activeTab}
+        onChange={(tab) => updateCatalogState("tab", tab)}
         items={[
-          { key: "movies", label: "Movies", children: <MoviesList /> },
-          { key: "series", label: "Series", children: <SeriesList /> },
+          {
+            key: "movies",
+            label: "Movies",
+            children: (
+              <MoviesList
+                query={movieQuery}
+                onQueryChange={(value) =>
+                  updateCatalogState("movieQuery", value)
+                }
+              />
+            ),
+          },
+          {
+            key: "tv",
+            label: "Series",
+            children: (
+              <SeriesList
+                query={seriesQuery}
+                onQueryChange={(value) =>
+                  updateCatalogState("seriesQuery", value)
+                }
+              />
+            ),
+          },
         ]}
       />
     </div>

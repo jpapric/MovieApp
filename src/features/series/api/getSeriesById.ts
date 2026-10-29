@@ -15,8 +15,6 @@ export type TvDetails = {
   vote_count: number;
   number_of_seasons: number;
   number_of_episodes: number;
-  networks: { id: number; name: string; logo_path: string | null }[];
-  created_by: { id: number; name: string; profile_path: string | null }[];
   credits: {
     cast: { id: number; name: string; character: string }[];
   };

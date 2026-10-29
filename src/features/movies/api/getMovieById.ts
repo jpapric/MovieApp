@@ -13,8 +13,6 @@ export type Movie = {
   status: string;
   original_language: string;
   vote_count: number;
-  budget: number;
-  revenue: number;
   credits: {
     cast: { id: number; name: string; character: string }[];
   };

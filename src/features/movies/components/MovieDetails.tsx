@@ -13,7 +13,7 @@ export default function MovieDetails() {
   useEffect(() => {
     const controller = new AbortController();
 
-    async function loadMovie() {
+    async function loadMovieById() {
       if (!movieId) {
         setError("Movie ID is missing.");
         setLoading(false);
@@ -39,7 +39,7 @@ export default function MovieDetails() {
       }
     }
 
-    void loadMovie();
+    void loadMovieById();
 
     return () => controller.abort();
   }, [movieId]);
