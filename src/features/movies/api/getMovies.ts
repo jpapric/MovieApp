@@ -24,7 +24,7 @@ export async function getPopularMovies(
     throw new Error("Missing token");
   }
 
-  const url = new URL(`${BASE_URL}/movie/popular`);
+  const url = new URL(`${BASE_URL}/discover/movie`);
 
   const response = await fetch(url, {
     headers: {

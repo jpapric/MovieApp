@@ -17,7 +17,7 @@ import type { Movie } from "../api/getMovieById";
 const { Title, Text, Paragraph } = Typography;
 
 type MovieDetailsViewProps = {
-  loading: string | boolean;
+  loading: boolean;
   error: string | null;
   movie: Movie | null;
 };
