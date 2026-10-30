@@ -12,6 +12,9 @@ export default function CatalogPage() {
   const movieQuery = searchParams.get("movieQuery") ?? "";
   const seriesQuery = searchParams.get("seriesQuery") ?? "";
 
+  const movieGenreId = Number(searchParams.get("movieGenreId")) || null;
+  const seriesGenreId = Number(searchParams.get("seriesGenreId")) || null;
+
   function updateCatalogState(key: string, value: string) {
     const next = new URLSearchParams(searchParams);
 
@@ -57,6 +60,13 @@ export default function CatalogPage() {
             children: (
               <MoviesList
                 query={movieQuery}
+                selectedGenreId={movieGenreId}
+                onGenreChange={(id) =>
+                  updateCatalogState(
+                    "movieGenreId",
+                    id === null ? "" : String(id),
+                  )
+                }
                 onQueryChange={(value) =>
                   updateCatalogState("movieQuery", value)
                 }
@@ -69,6 +79,13 @@ export default function CatalogPage() {
             children: (
               <SeriesList
                 query={seriesQuery}
+                selectedGenreId={seriesGenreId}
+                onGenreChange={(id) =>
+                  updateCatalogState(
+                    "seriesGenreId",
+                    id === null ? "" : String(id),
+                  )
+                }
                 onQueryChange={(value) =>
                   updateCatalogState("seriesQuery", value)
                 }
