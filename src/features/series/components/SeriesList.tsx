@@ -5,6 +5,7 @@ import type { SeriesGenres } from "../api/getSeriesGenres";
 import SeriesListView from "./SeriesListView";
 import { getSeriesSearch } from "../api/getSeriesSearch";
 import { getSeriesGenres } from "../api/getSeriesGenres";
+import { useAuth } from "../../auth/AuthProvider";
 
 type SeriesListProps = {
   query: string;
@@ -77,6 +78,8 @@ export default function SeriesList({
       ? series
       : series.filter((tv) => tv.genre_ids.includes(selectedGenreId));
 
+  const { favoriteItems, toggleFavorite } = useAuth();
+
   return (
     <SeriesListView
       loading={loading}
@@ -87,6 +90,14 @@ export default function SeriesList({
       query={query}
       onQueryChange={onQueryChange}
       onGenreChange={onGenreChange}
+      favoriteSeriesIds={
+        new Set(
+          favoriteItems
+            .filter((favorite) => favorite.type === "series")
+            .map((favorite) => favorite.item.id),
+        )
+      }
+      onFavoriteToggle={(tv) => toggleFavorite({ type: "series", item: tv })}
     />
   );
 }

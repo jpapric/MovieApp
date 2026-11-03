@@ -1,5 +1,7 @@
 import { createContext, useContext, useState } from "react";
 import type { ReactNode } from "react";
+import type { Movies } from "../movies/api/getMovies";
+import type { Series } from "../series/api/getSeries";
 
 type AuthUser = {
   username: string;
@@ -13,11 +15,54 @@ type AuthContextValue = {
   user: AuthUser | null;
   login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => void;
+  favoriteItems: Favorite[];
+  toggleFavorite: (favorite: Favorite) => void;
 };
 
 type AuthProviderProps = {
   children: ReactNode;
 };
+
+type Favorite =
+  | { type: "movie"; item: Movies }
+  | { type: "series"; item: Series };
+
+function isMovie(value: unknown): value is Movies {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof value.id === "number" &&
+    "title" in value &&
+    typeof value.title === "string"
+  );
+}
+
+function isSeries(value: unknown): value is Series {
+  return (
+    typeof value === "object" &&
+    value !== null &&
+    "id" in value &&
+    typeof value.id === "number" &&
+    "name" in value &&
+    typeof value.name === "string"
+  );
+}
+
+function isFavorite(value: unknown): value is Favorite {
+  if (typeof value !== "object" || value === null || !("type" in value)) {
+    return false;
+  }
+
+  if (!("item" in value)) {
+    return false;
+  }
+
+  if (value.type === "movie") return isMovie(value.item);
+  if (value.type === "series") return isSeries(value.item);
+
+  return false;
+}
 
 function isAuthUser(value: unknown): value is AuthUser {
   return (
@@ -30,6 +75,31 @@ function isAuthUser(value: unknown): value is AuthUser {
     "token" in value &&
     typeof value.token === "string"
   );
+}
+
+function readFavorites(): Favorite[] {
+  try {
+    const saved = localStorage.getItem("favorites");
+    if (!saved) return [];
+
+    const parsed: unknown = JSON.parse(saved);
+    if (!Array.isArray(parsed)) {
+      throw new Error("Saved favorites are not an array.");
+    }
+
+    return parsed.flatMap((entry): Favorite[] => {
+      if (isFavorite(entry)) return [entry];
+
+      if (isMovie(entry)) {
+        return [{ type: "movie", item: entry }];
+      }
+
+      return [];
+    });
+  } catch (error) {
+    console.error("Could not read saved favorites.", error);
+    return [];
+  }
 }
 
 function removeStoredUser() {
@@ -78,6 +148,10 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: AuthProviderProps) {
   const [user, setUser] = useState<AuthUser | null>(readStoredUser);
 
+  const [favoriteItems, setFavoriteItems] = useState<Favorite[]>(() =>
+    user ? readFavorites() : [],
+  );
+
   const login: AuthContextValue["login"] = async (username, password) => {
     if (username !== "user" || password !== "password") {
       return { success: false, message: "Username or password invalid" };
@@ -98,7 +172,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         message: "Could not save login. Try again.",
       };
     }
-
+    setFavoriteItems(readFavorites());
     setUser(mockUser);
     return { success: true };
   };
@@ -106,10 +180,44 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const logout = () => {
     removeStoredUser();
     setUser(null);
+    setFavoriteItems([]);
+  };
+
+  const toggleFavorite = (favorite: Favorite) => {
+    if (!user) return;
+
+    const alreadyFavorite = favoriteItems.some(
+      (saved) =>
+        saved.type === favorite.type && saved.item.id === favorite.item.id,
+    );
+
+    const nextFavorites = alreadyFavorite
+      ? favoriteItems.filter(
+          (saved) =>
+            saved.type !== favorite.type || saved.item.id !== favorite.item.id,
+        )
+      : [favorite, ...favoriteItems];
+
+    try {
+      localStorage.setItem("favorites", JSON.stringify(nextFavorites));
+    } catch (error) {
+      console.error("Could not save favorites.", error);
+      return;
+    }
+
+    setFavoriteItems(nextFavorites);
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        login,
+        logout,
+        favoriteItems,
+        toggleFavorite,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

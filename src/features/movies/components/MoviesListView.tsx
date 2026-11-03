@@ -11,10 +11,12 @@ import {
   Input,
   Spin,
 } from "antd";
+import { StarOutlined, StarFilled } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import type { Movies } from "../api/getMovies";
 import { Select } from "antd";
 import type { MovieGenres } from "../api/getMovieGenres";
+import { Button } from "antd";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -27,6 +29,8 @@ type MoviesListViewProps = {
   query: string;
   onQueryChange: (value: string) => void;
   onGenreChange: (id: number | null) => void;
+  favoriteMovieIds: Set<number>;
+  onFavoriteToggle: (movie: Movies) => void;
 };
 
 export default function MoviesListView({
@@ -38,6 +42,8 @@ export default function MoviesListView({
   query,
   onQueryChange,
   onGenreChange,
+  favoriteMovieIds,
+  onFavoriteToggle,
 }: MoviesListViewProps) {
   const location = useLocation();
 
@@ -125,9 +131,39 @@ export default function MoviesListView({
                                 style={{ minWidth: 0, paddingLeft: "15px" }}
                               >
                                 <Space direction="vertical" size="small">
-                                  <Title level={5} style={{ margin: 0 }}>
-                                    {movie.title}
-                                  </Title>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      width: "100%",
+                                    }}
+                                  >
+                                    <Title level={5} style={{ margin: 0 }}>
+                                      {movie.title}
+                                    </Title>
+
+                                    <Button
+                                      type="text"
+                                      aria-pressed={favoriteMovieIds.has(
+                                        movie.id,
+                                      )}
+                                      icon={
+                                        favoriteMovieIds.has(movie.id) ? (
+                                          <StarFilled
+                                            style={{ color: "#fadb14" }}
+                                          />
+                                        ) : (
+                                          <StarOutlined />
+                                        )
+                                      }
+                                      onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        onFavoriteToggle(movie);
+                                      }}
+                                    />
+                                  </div>
 
                                   <Text type="secondary">
                                     {movie.release_date?.slice(0, 4) ||

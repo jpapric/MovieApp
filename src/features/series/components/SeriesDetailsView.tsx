@@ -48,7 +48,7 @@ export default function SeriesDetailsView({
     <>
       <main style={{ maxWidth: 1000, margin: "32px auto", padding: "0 16px" }}>
         <Link to={returnTo}>
-          <Button icon={<ArrowLeftOutlined />}>Back to catalog</Button>
+          <Button icon={<ArrowLeftOutlined />}>Back</Button>
         </Link>
 
         <Card>

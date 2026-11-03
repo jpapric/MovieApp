@@ -5,6 +5,7 @@ import type { MovieGenres } from "../api/getMovieGenres";
 import MoviesListView from "./MoviesListView";
 import { getMoviesSearch } from "../api/getMoviesSearch";
 import { getMovieGenres } from "../api/getMovieGenres";
+import { useAuth } from "../../auth/AuthProvider";
 
 type MoviesListProps = {
   query: string;
@@ -23,6 +24,7 @@ export default function MoviesList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [genres, setGenres] = useState<MovieGenres[]>([]);
+  const { favoriteItems, toggleFavorite } = useAuth();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -87,6 +89,16 @@ export default function MoviesList({
       query={query}
       onQueryChange={onQueryChange}
       onGenreChange={onGenreChange}
+      favoriteMovieIds={
+        new Set(
+          favoriteItems
+            .filter((favorite) => favorite.type === "movie")
+            .map((favorite) => favorite.item.id),
+        )
+      }
+      onFavoriteToggle={(movie) =>
+        toggleFavorite({ type: "movie", item: movie })
+      }
     />
   );
 }

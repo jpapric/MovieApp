@@ -11,10 +11,12 @@ import {
   Input,
   Spin,
   Select,
+  Button,
 } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import type { Series } from "../api/getSeries";
 import type { SeriesGenres } from "../api/getSeriesGenres";
+import { StarOutlined, StarFilled } from "@ant-design/icons";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -27,6 +29,8 @@ type SeriesListViewProps = {
   query: string;
   onQueryChange: (value: string) => void;
   onGenreChange: (id: number | null) => void;
+  favoriteSeriesIds: Set<number>;
+  onFavoriteToggle: (tv: Series) => void;
 };
 
 export default function SeriesListView({
@@ -38,6 +42,8 @@ export default function SeriesListView({
   query,
   onQueryChange,
   onGenreChange,
+  favoriteSeriesIds,
+  onFavoriteToggle,
 }: SeriesListViewProps) {
   const location = useLocation();
 
@@ -126,9 +132,39 @@ export default function SeriesListView({
                                 style={{ minWidth: 0, paddingLeft: "15px" }}
                               >
                                 <Space direction="vertical" size="small">
-                                  <Title level={5} style={{ margin: 0 }}>
-                                    {tv.name}
-                                  </Title>
+                                  <div
+                                    style={{
+                                      display: "flex",
+                                      justifyContent: "space-between",
+                                      alignItems: "center",
+                                      width: "100%",
+                                    }}
+                                  >
+                                    <Title level={5} style={{ margin: 0 }}>
+                                      {tv.name}
+                                    </Title>
+
+                                    <Button
+                                      type="text"
+                                      aria-pressed={favoriteSeriesIds.has(
+                                        tv.id,
+                                      )}
+                                      icon={
+                                        favoriteSeriesIds.has(tv.id) ? (
+                                          <StarFilled
+                                            style={{ color: "#fadb14" }}
+                                          />
+                                        ) : (
+                                          <StarOutlined />
+                                        )
+                                      }
+                                      onClick={(event) => {
+                                        event.preventDefault();
+                                        event.stopPropagation();
+                                        onFavoriteToggle(tv);
+                                      }}
+                                    />
+                                  </div>
                                   <Text type="secondary">
                                     {tv.first_air_date?.slice(0, 4) ||
                                       "Year unknown"}
