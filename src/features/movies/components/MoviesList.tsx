@@ -6,6 +6,7 @@ import MoviesListView from "./MoviesListView";
 import { getMoviesSearch } from "../api/getMoviesSearch";
 import { getMovieGenres } from "../api/getMovieGenres";
 import { useAuth } from "../../auth/AuthProvider";
+import { message } from "antd";
 
 type MoviesListProps = {
   query: string;
@@ -25,6 +26,7 @@ export default function MoviesList({
   const [error, setError] = useState<string | null>(null);
   const [genres, setGenres] = useState<MovieGenres[]>([]);
   const { favoriteItems, toggleFavorite } = useAuth();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -79,26 +81,35 @@ export default function MoviesList({
       ? movies
       : movies.filter((movie) => movie.genre_ids.includes(selectedGenreId));
 
+  function handleFavoriteToggle(movie: Movies) {
+    const saved = toggleFavorite({ type: "movie", item: movie });
+
+    if (!saved) {
+      messageApi.error("Failed to save favorite. Try again.");
+    }
+  }
+
   return (
-    <MoviesListView
-      loading={loading}
-      error={error}
-      movies={filteredMovies}
-      genres={genres}
-      selectedGenreId={selectedGenreId}
-      query={query}
-      onQueryChange={onQueryChange}
-      onGenreChange={onGenreChange}
-      favoriteMovieIds={
-        new Set(
-          favoriteItems
-            .filter((favorite) => favorite.type === "movie")
-            .map((favorite) => favorite.item.id),
-        )
-      }
-      onFavoriteToggle={(movie) =>
-        toggleFavorite({ type: "movie", item: movie })
-      }
-    />
+    <>
+      {contextHolder}
+      <MoviesListView
+        loading={loading}
+        error={error}
+        movies={filteredMovies}
+        genres={genres}
+        selectedGenreId={selectedGenreId}
+        query={query}
+        onQueryChange={onQueryChange}
+        onGenreChange={onGenreChange}
+        favoriteMovieIds={
+          new Set(
+            favoriteItems
+              .filter((favorite) => favorite.type === "movie")
+              .map((favorite) => favorite.item.id),
+          )
+        }
+        onFavoriteToggle={handleFavoriteToggle}
+      />
+    </>
   );
 }

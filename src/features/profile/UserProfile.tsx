@@ -1,10 +1,11 @@
 import { Link, useNavigate } from "react-router-dom";
 import { LogoutOutlined, DeleteOutlined } from "@ant-design/icons";
-import { Empty, List, Card, Typography, Image, Button } from "antd";
+import { Empty, List, Card, Typography, Image, Button, message } from "antd";
 import { useAuth } from "../auth/AuthProvider";
 const { Title } = Typography;
 
 export default function UserProfile() {
+  const [messageApi, contextHolder] = message.useMessage();
   const navigate = useNavigate();
   const { user, logout, favoriteItems, toggleFavorite } = useAuth();
 
@@ -15,6 +16,7 @@ export default function UserProfile() {
 
   return (
     <>
+      {contextHolder}
       <div
         style={{
           display: "flex",
@@ -79,7 +81,11 @@ export default function UserProfile() {
                         onClick={(event) => {
                           event.preventDefault();
                           event.stopPropagation();
-                          toggleFavorite(favorite);
+                          if (!toggleFavorite(favorite)) {
+                            messageApi.error(
+                              "Failed to save favorite. Try again.",
+                            );
+                          }
                         }}
                       >
                         <DeleteOutlined />

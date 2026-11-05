@@ -16,7 +16,7 @@ type AuthContextValue = {
   login: (username: string, password: string) => Promise<LoginResult>;
   logout: () => void;
   favoriteItems: Favorite[];
-  toggleFavorite: (favorite: Favorite) => void;
+  toggleFavorite: (favorite: Favorite) => boolean;
 };
 
 type AuthProviderProps = {
@@ -183,8 +183,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     setFavoriteItems([]);
   };
 
-  const toggleFavorite = (favorite: Favorite) => {
-    if (!user) return;
+  const toggleFavorite = (favorite: Favorite): boolean => {
+    if (!user) return false;
 
     const alreadyFavorite = favoriteItems.some(
       (saved) =>
@@ -202,10 +202,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem("favorites", JSON.stringify(nextFavorites));
     } catch (error) {
       console.error("Could not save favorites.", error);
-      return;
+      return false;
     }
 
     setFavoriteItems(nextFavorites);
+    return true;
   };
 
   return (

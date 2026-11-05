@@ -33,7 +33,7 @@ export default function SeriesDetailsView({
   const returnTo = location.state?.from ?? "/catalog";
 
   if (loading) {
-    <Spin spinning={loading} tip="Loading series..." />;
+    return <Spin tip="Loading series..." />;
   }
 
   if (error) {

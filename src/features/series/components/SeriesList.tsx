@@ -6,6 +6,7 @@ import SeriesListView from "./SeriesListView";
 import { getSeriesSearch } from "../api/getSeriesSearch";
 import { getSeriesGenres } from "../api/getSeriesGenres";
 import { useAuth } from "../../auth/AuthProvider";
+import { message } from "antd";
 
 type SeriesListProps = {
   query: string;
@@ -24,6 +25,8 @@ export default function SeriesList({
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [genres, setGenres] = useState<SeriesGenres[]>([]);
+  const { favoriteItems, toggleFavorite } = useAuth();
+  const [messageApi, contextHolder] = message.useMessage();
 
   useEffect(() => {
     const controller = new AbortController();
@@ -78,26 +81,35 @@ export default function SeriesList({
       ? series
       : series.filter((tv) => tv.genre_ids.includes(selectedGenreId));
 
-  const { favoriteItems, toggleFavorite } = useAuth();
+  function handleFavoriteToggle(tv: Series) {
+    const saved = toggleFavorite({ type: "series", item: tv });
+
+    if (!saved) {
+      messageApi.error("Failed to save favorite. Try again.");
+    }
+  }
 
   return (
-    <SeriesListView
-      loading={loading}
-      error={error}
-      series={filteredSeries}
-      genres={genres}
-      selectedGenreId={selectedGenreId}
-      query={query}
-      onQueryChange={onQueryChange}
-      onGenreChange={onGenreChange}
-      favoriteSeriesIds={
-        new Set(
-          favoriteItems
-            .filter((favorite) => favorite.type === "series")
-            .map((favorite) => favorite.item.id),
-        )
-      }
-      onFavoriteToggle={(tv) => toggleFavorite({ type: "series", item: tv })}
-    />
+    <>
+      {contextHolder}
+      <SeriesListView
+        loading={loading}
+        error={error}
+        series={filteredSeries}
+        genres={genres}
+        selectedGenreId={selectedGenreId}
+        query={query}
+        onQueryChange={onQueryChange}
+        onGenreChange={onGenreChange}
+        favoriteSeriesIds={
+          new Set(
+            favoriteItems
+              .filter((favorite) => favorite.type === "series")
+              .map((favorite) => favorite.item.id),
+          )
+        }
+        onFavoriteToggle={handleFavoriteToggle}
+      />
+    </>
   );
 }

@@ -33,7 +33,7 @@ export default function MovieDetailsView({
   const returnTo = location.state?.from ?? "/catalog";
 
   if (loading) {
-    <Spin spinning={loading} tip="Loading movies..." />;
+    return <Spin tip="Loading movies..." />;
   }
 
   if (error) {
