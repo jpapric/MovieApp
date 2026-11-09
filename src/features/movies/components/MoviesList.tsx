@@ -7,6 +7,9 @@ import { getMoviesSearch } from "../api/getMoviesSearch";
 import { getMovieGenres } from "../api/getMovieGenres";
 import { useAuth } from "../../auth/AuthProvider";
 import { message } from "antd";
+import { useSearchParams } from "react-router-dom";
+
+const MAX_API_PAGES = 500;
 
 type MoviesListProps = {
   query: string;
@@ -27,6 +30,23 @@ export default function MoviesList({
   const [genres, setGenres] = useState<MovieGenres[]>([]);
   const { favoriteItems, toggleFavorite } = useAuth();
   const [messageApi, contextHolder] = message.useMessage();
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const pageValue = Number(searchParams.get("moviePage"));
+  const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
+
+  function handlePageChange(nextPage: number) {
+    const next = new URLSearchParams(searchParams);
+
+    if (nextPage === 1) {
+      next.delete("moviePage");
+    } else {
+      next.set("moviePage", String(nextPage));
+    }
+
+    setSearchParams(next, { replace: true });
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,10 +58,11 @@ export default function MoviesList({
           setError(null);
 
           const result = query.trim()
-            ? await getMoviesSearch(query, controller.signal)
-            : await getMovies(controller.signal);
+            ? await getMoviesSearch(query, page, controller.signal)
+            : await getMovies(page, selectedGenreId, controller.signal);
 
-          setMovies(result);
+          setMovies(result.results);
+          setTotalPages(Math.min(result.total_pages, MAX_API_PAGES));
         } catch (error) {
           if (error instanceof Error && error.name === "AbortError") {
             return;
@@ -61,7 +82,7 @@ export default function MoviesList({
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [query]);
+  }, [query, page, selectedGenreId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,10 +97,13 @@ export default function MoviesList({
     return () => controller.abort();
   }, []);
 
-  const filteredMovies =
-    selectedGenreId === null
-      ? movies
-      : movies.filter((movie) => movie.genre_ids.includes(selectedGenreId));
+  function handleQueryChange(value: string) {
+    onQueryChange(value);
+  }
+
+  function handleGenreChange(id: number | null) {
+    onGenreChange(id);
+  }
 
   function handleFavoriteToggle(movie: Movies) {
     const saved = toggleFavorite({ type: "movie", item: movie });
@@ -89,18 +113,26 @@ export default function MoviesList({
     }
   }
 
+  const displayedMovies =
+    query.trim() && selectedGenreId !== null
+      ? movies.filter((movie) => movie.genre_ids.includes(selectedGenreId))
+      : movies;
+
   return (
     <>
       {contextHolder}
       <MoviesListView
         loading={loading}
         error={error}
-        movies={filteredMovies}
+        movies={displayedMovies}
         genres={genres}
         selectedGenreId={selectedGenreId}
         query={query}
-        onQueryChange={onQueryChange}
-        onGenreChange={onGenreChange}
+        onQueryChange={handleQueryChange}
+        onGenreChange={handleGenreChange}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
         favoriteMovieIds={
           new Set(
             favoriteItems

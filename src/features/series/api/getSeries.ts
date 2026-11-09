@@ -10,11 +10,16 @@ export type Series = {
   genre_ids: number[];
 };
 
-type PopularSeriesResponse = {
+export type SeriesPage = {
   results: Series[];
+  total_pages: number;
 };
 
-export async function getSeries(signal?: AbortSignal): Promise<Series[]> {
+export async function getSeries(
+  page: number,
+  genreId: number | null,
+  signal?: AbortSignal,
+): Promise<SeriesPage> {
   const token = (
     import.meta as ImportMeta & { env: { VITE_ACCESS_TOKEN?: string } }
   ).env.VITE_ACCESS_TOKEN;
@@ -24,6 +29,11 @@ export async function getSeries(signal?: AbortSignal): Promise<Series[]> {
   }
 
   const url = new URL(`${BASE_URL}/discover/tv`);
+  url.searchParams.set("page", String(page));
+
+  if (genreId !== null) {
+    url.searchParams.set("with_genres", String(genreId));
+  }
 
   const response = await fetch(url, {
     headers: {
@@ -37,6 +47,5 @@ export async function getSeries(signal?: AbortSignal): Promise<Series[]> {
     throw new Error(`Series fetch failed (${response.status}).`);
   }
 
-  const data: PopularSeriesResponse = await response.json();
-  return data.results;
+  return response.json();
 }

@@ -23,6 +23,15 @@ export default function CatalogPage() {
     } else {
       next.delete(key);
     }
+
+    if (key === "movieQuery" || key === "movieGenreId") {
+      next.delete("moviePage");
+    }
+
+    if (key === "seriesQuery" || key === "seriesGenreId") {
+      next.delete("seriesPage");
+    }
+
     setSearchParams(next, { replace: true });
   }
 

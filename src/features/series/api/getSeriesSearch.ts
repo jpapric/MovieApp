@@ -1,14 +1,11 @@
 import BASE_URL from "../../../config/apiBase";
-import type { Series } from "./getSeries";
-
-type SearchSeriesResponse = {
-  results: Series[];
-};
+import type { SeriesPage } from "./getSeries";
 
 export async function getSeriesSearch(
   query: string,
+  page: number,
   signal?: AbortSignal,
-): Promise<Series[]> {
+): Promise<SeriesPage> {
   const token = (
     import.meta as ImportMeta & { env: { VITE_ACCESS_TOKEN?: string } }
   ).env.VITE_ACCESS_TOKEN;
@@ -19,6 +16,7 @@ export async function getSeriesSearch(
 
   const url = new URL(`${BASE_URL}/search/tv`);
   url.searchParams.set("query", query.trim());
+  url.searchParams.set("page", String(page));
 
   const response = await fetch(url, {
     headers: {
@@ -32,6 +30,5 @@ export async function getSeriesSearch(
     throw new Error(`Series search fetch failed (${response.status}).`);
   }
 
-  const data: SearchSeriesResponse = await response.json();
-  return data.results;
+  return response.json();
 }

@@ -7,6 +7,9 @@ import { getSeriesSearch } from "../api/getSeriesSearch";
 import { getSeriesGenres } from "../api/getSeriesGenres";
 import { useAuth } from "../../auth/AuthProvider";
 import { message } from "antd";
+import { useSearchParams } from "react-router-dom";
+
+const MAX_API_PAGES = 500;
 
 type SeriesListProps = {
   query: string;
@@ -27,6 +30,23 @@ export default function SeriesList({
   const [genres, setGenres] = useState<SeriesGenres[]>([]);
   const { favoriteItems, toggleFavorite } = useAuth();
   const [messageApi, contextHolder] = message.useMessage();
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchParams, setSearchParams] = useSearchParams();
+
+  const pageValue = Number(searchParams.get("seriesPage"));
+  const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
+
+  function handlePageChange(nextPage: number) {
+    const next = new URLSearchParams(searchParams);
+
+    if (nextPage === 1) {
+      next.delete("seriesPage");
+    } else {
+      next.set("seriesPage", String(nextPage));
+    }
+
+    setSearchParams(next, { replace: true });
+  }
 
   useEffect(() => {
     const controller = new AbortController();
@@ -38,10 +58,11 @@ export default function SeriesList({
           setError(null);
 
           const result = query.trim()
-            ? await getSeriesSearch(query, controller.signal)
-            : await getSeries(controller.signal);
+            ? await getSeriesSearch(query, page, controller.signal)
+            : await getSeries(page, selectedGenreId, controller.signal);
 
-          setSeries(result);
+          setSeries(result.results);
+          setTotalPages(Math.min(result.total_pages, MAX_API_PAGES));
         } catch (error) {
           if (error instanceof Error && error.name === "AbortError") {
             return;
@@ -54,14 +75,14 @@ export default function SeriesList({
           }
         }
       },
-      query.trim() ? 500 : 0,
+      query.trim() ? 300 : 0,
     );
 
     return () => {
       window.clearTimeout(timeoutId);
       controller.abort();
     };
-  }, [query]);
+  }, [query, page, selectedGenreId]);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -76,10 +97,13 @@ export default function SeriesList({
     return () => controller.abort();
   }, []);
 
-  const filteredSeries =
-    selectedGenreId === null
-      ? series
-      : series.filter((tv) => tv.genre_ids.includes(selectedGenreId));
+  function handleQueryChange(value: string) {
+    onQueryChange(value);
+  }
+
+  function handleGenreChange(id: number | null) {
+    onGenreChange(id);
+  }
 
   function handleFavoriteToggle(tv: Series) {
     const saved = toggleFavorite({ type: "series", item: tv });
@@ -89,18 +113,26 @@ export default function SeriesList({
     }
   }
 
+  const displayedSeries =
+    query.trim() && selectedGenreId !== null
+      ? series.filter((tv) => tv.genre_ids.includes(selectedGenreId))
+      : series;
+
   return (
     <>
       {contextHolder}
       <SeriesListView
         loading={loading}
         error={error}
-        series={filteredSeries}
+        series={displayedSeries}
         genres={genres}
         selectedGenreId={selectedGenreId}
         query={query}
-        onQueryChange={onQueryChange}
-        onGenreChange={onGenreChange}
+        onQueryChange={handleQueryChange}
+        onGenreChange={handleGenreChange}
+        page={page}
+        totalPages={totalPages}
+        onPageChange={handlePageChange}
         favoriteSeriesIds={
           new Set(
             favoriteItems

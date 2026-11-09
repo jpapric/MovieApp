@@ -57,7 +57,7 @@ export default function SeriesDetailsView({
               {tvDetails.poster_path ? (
                 <Image
                   src={`https://image.tmdb.org/t/p/w500${tvDetails.poster_path}`}
-                  alt={`Movie poster ${tvDetails.name}`}
+                  alt={`Series poster ${tvDetails.name}`}
                   width="100%"
                   style={{ borderRadius: 8 }}
                 />

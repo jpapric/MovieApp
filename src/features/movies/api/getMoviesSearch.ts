@@ -1,14 +1,11 @@
 import BASE_URL from "../../../config/apiBase";
-import type { Movies } from "./getMovies";
-
-type SearchMoviesResponse = {
-  results: Movies[];
-};
+import type { MoviesPage } from "./getMovies";
 
 export async function getMoviesSearch(
   query: string,
+  page: number,
   signal?: AbortSignal,
-): Promise<Movies[]> {
+): Promise<MoviesPage> {
   const token = (
     import.meta as ImportMeta & { env: { VITE_ACCESS_TOKEN?: string } }
   ).env.VITE_ACCESS_TOKEN;
@@ -19,6 +16,7 @@ export async function getMoviesSearch(
 
   const url = new URL(`${BASE_URL}/search/movie`);
   url.searchParams.set("query", query.trim());
+  url.searchParams.set("page", String(page));
 
   const response = await fetch(url, {
     headers: {
@@ -32,6 +30,5 @@ export async function getMoviesSearch(
     throw new Error(`Movie search fetch failed (${response.status}).`);
   }
 
-  const data: SearchMoviesResponse = await response.json();
-  return data.results;
+  return response.json();
 }

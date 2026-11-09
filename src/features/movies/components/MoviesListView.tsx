@@ -10,13 +10,14 @@ import {
   Col,
   Input,
   Spin,
+  Select,
+  Button,
+  Pagination,
 } from "antd";
 import { StarOutlined, StarFilled } from "@ant-design/icons";
 import { Link, useLocation } from "react-router-dom";
 import type { Movies } from "../api/getMovies";
-import { Select } from "antd";
 import type { MovieGenres } from "../api/getMovieGenres";
-import { Button } from "antd";
 
 const { Title, Text, Paragraph } = Typography;
 
@@ -31,6 +32,9 @@ type MoviesListViewProps = {
   onGenreChange: (id: number | null) => void;
   favoriteMovieIds: Set<number>;
   onFavoriteToggle: (movie: Movies) => void;
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 };
 
 export default function MoviesListView({
@@ -44,6 +48,9 @@ export default function MoviesListView({
   onGenreChange,
   favoriteMovieIds,
   onFavoriteToggle,
+  page,
+  totalPages,
+  onPageChange,
 }: MoviesListViewProps) {
   const location = useLocation();
 
@@ -182,6 +189,16 @@ export default function MoviesListView({
                     </Link>
                   </List.Item>
                 )}
+              />
+            )}
+            {!loading && !error && totalPages > 1 && (
+              <Pagination
+                current={page}
+                pageSize={1}
+                total={totalPages}
+                onChange={onPageChange}
+                showSizeChanger={false}
+                style={{ marginTop: 24, textAlign: "center" }}
               />
             )}
           </Col>

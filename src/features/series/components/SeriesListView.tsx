@@ -12,6 +12,7 @@ import {
   Spin,
   Select,
   Button,
+  Pagination,
 } from "antd";
 import { Link, useLocation } from "react-router-dom";
 import type { Series } from "../api/getSeries";
@@ -31,6 +32,9 @@ type SeriesListViewProps = {
   onGenreChange: (id: number | null) => void;
   favoriteSeriesIds: Set<number>;
   onFavoriteToggle: (tv: Series) => void;
+  page: number;
+  totalPages: number;
+  onPageChange: (page: number) => void;
 };
 
 export default function SeriesListView({
@@ -44,6 +48,9 @@ export default function SeriesListView({
   onGenreChange,
   favoriteSeriesIds,
   onFavoriteToggle,
+  page,
+  totalPages,
+  onPageChange,
 }: SeriesListViewProps) {
   const location = useLocation();
 
@@ -182,6 +189,16 @@ export default function SeriesListView({
                     </Link>
                   </List.Item>
                 )}
+              />
+            )}
+            {!loading && !error && totalPages > 1 && (
+              <Pagination
+                current={page}
+                pageSize={1}
+                total={totalPages}
+                onChange={onPageChange}
+                showSizeChanger={false}
+                style={{ marginTop: 24, textAlign: "center" }}
               />
             )}
           </Col>
