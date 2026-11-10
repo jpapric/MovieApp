@@ -2,6 +2,7 @@ import { Tabs, Typography } from "antd";
 import MoviesList from "../movies/components/MoviesList";
 import SeriesList from "../series/components/SeriesList";
 import { useSearchParams } from "react-router";
+import { useEffect } from "react";
 
 const { Title, Text } = Typography;
 
@@ -12,8 +13,32 @@ export default function CatalogPage() {
   const movieQuery = searchParams.get("movieQuery") ?? "";
   const seriesQuery = searchParams.get("seriesQuery") ?? "";
 
-  const movieGenreId = Number(searchParams.get("movieGenreId")) || null;
-  const seriesGenreId = Number(searchParams.get("seriesGenreId")) || null;
+  const movieGenreId = movieQuery.trim()
+    ? null
+    : Number(searchParams.get("movieGenreId")) || null;
+
+  const seriesGenreId = seriesQuery.trim()
+    ? null
+    : Number(searchParams.get("seriesGenreId")) || null;
+
+  useEffect(() => {
+    const next = new URLSearchParams(searchParams);
+    let changed = false;
+
+    if (movieQuery.trim() && next.has("movieGenreId")) {
+      next.delete("movieGenreId");
+      changed = true;
+    }
+
+    if (seriesQuery.trim() && next.has("seriesGenreId")) {
+      next.delete("seriesGenreId");
+      changed = true;
+    }
+
+    if (changed) {
+      setSearchParams(next, { replace: true });
+    }
+  }, [movieQuery, seriesQuery, searchParams, setSearchParams]);
 
   function updateCatalogState(key: string, value: string) {
     const next = new URLSearchParams(searchParams);
@@ -22,6 +47,22 @@ export default function CatalogPage() {
       next.set(key, value);
     } else {
       next.delete(key);
+    }
+
+    if (key === "movieQuery" && value.trim()) {
+      next.delete("movieGenreId");
+    }
+
+    if (key === "movieGenreId" && value) {
+      next.delete("movieQuery");
+    }
+
+    if (key === "seriesQuery" && value.trim()) {
+      next.delete("seriesGenreId");
+    }
+
+    if (key === "seriesGenreId" && value) {
+      next.delete("seriesQuery");
     }
 
     if (key === "movieQuery" || key === "movieGenreId") {

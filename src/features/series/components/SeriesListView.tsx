@@ -72,6 +72,10 @@ export default function SeriesListView({
                 onGenreChange(value ?? null)
               }
             />
+            <Text type="secondary">
+              Search and genre filtering are separate filters, selecting one
+              clears the other.
+            </Text>
           </Col>
 
           <Col xs={24} md={18}>

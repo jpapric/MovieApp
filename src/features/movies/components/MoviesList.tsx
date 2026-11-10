@@ -33,8 +33,15 @@ export default function MoviesList({
   const [totalPages, setTotalPages] = useState(1);
   const [searchParams, setSearchParams] = useSearchParams();
 
-  const pageValue = Number(searchParams.get("moviePage"));
-  const page = Number.isInteger(pageValue) && pageValue > 0 ? pageValue : 1;
+  const rawPage = searchParams.get("moviePage");
+  const parsedPage = rawPage === null ? 1 : Number(rawPage);
+
+  const isValidPage =
+    rawPage === null ||
+    (/^[1-9]\d*$/.test(rawPage) && Number.isSafeInteger(parsedPage));
+
+  const page = isValidPage ? parsedPage : 1;
+  const requestPage = Math.min(page, MAX_API_PAGES);
 
   function handlePageChange(nextPage: number) {
     const next = new URLSearchParams(searchParams);
@@ -49,20 +56,62 @@ export default function MoviesList({
   }
 
   useEffect(() => {
+    if (rawPage === null || isValidPage) return;
+
+    setSearchParams(
+      (current) => {
+        const next = new URLSearchParams(current);
+        next.delete("moviePage");
+        return next;
+      },
+      { replace: true },
+    );
+  }, [rawPage, isValidPage, setSearchParams]);
+
+  useEffect(() => {
     const controller = new AbortController();
 
     const timeoutId = window.setTimeout(
       async () => {
+        let redirecting = false;
         try {
           setLoading(true);
           setError(null);
 
           const result = query.trim()
-            ? await getMoviesSearch(query, page, controller.signal)
-            : await getMovies(page, selectedGenreId, controller.signal);
+            ? await getMoviesSearch(query, requestPage, controller.signal)
+            : await getMovies(requestPage, selectedGenreId, controller.signal);
+
+          const availablePages = Math.max(
+            1,
+            Math.min(result.total_pages, MAX_API_PAGES),
+          );
+
+          setTotalPages(availablePages);
+
+          const validPage = Math.min(requestPage, availablePages);
+
+          if (validPage !== page) {
+            setSearchParams(
+              (current) => {
+                const next = new URLSearchParams(current);
+
+                if (validPage === 1) {
+                  next.delete("moviePage");
+                } else {
+                  next.set("moviePage", String(validPage));
+                }
+
+                return next;
+              },
+              { replace: true },
+            );
+
+            redirecting = true;
+            return;
+          }
 
           setMovies(result.results);
-          setTotalPages(Math.min(result.total_pages, MAX_API_PAGES));
         } catch (error) {
           if (error instanceof Error && error.name === "AbortError") {
             return;
@@ -70,7 +119,7 @@ export default function MoviesList({
 
           setError(error instanceof Error ? error.message : "Unknown error");
         } finally {
-          if (!controller.signal.aborted) {
+          if (!controller.signal.aborted && !redirecting) {
             setLoading(false);
           }
         }
@@ -113,18 +162,13 @@ export default function MoviesList({
     }
   }
 
-  const displayedMovies =
-    query.trim() && selectedGenreId !== null
-      ? movies.filter((movie) => movie.genre_ids.includes(selectedGenreId))
-      : movies;
-
   return (
     <>
       {contextHolder}
       <MoviesListView
         loading={loading}
         error={error}
-        movies={displayedMovies}
+        movies={movies}
         genres={genres}
         selectedGenreId={selectedGenreId}
         query={query}

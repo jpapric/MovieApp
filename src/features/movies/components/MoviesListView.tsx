@@ -72,6 +72,10 @@ export default function MoviesListView({
                 onGenreChange(value ?? null)
               }
             />
+            <Text type="secondary">
+              Search and genre filtering are separate filters, selecting one
+              clears the other.
+            </Text>
           </Col>
 
           <Col xs={24} md={18}>
@@ -85,6 +89,7 @@ export default function MoviesListView({
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
             />
+
             {error ? (
               <p role="alert">Error:{error}</p>
             ) : loading ? (
